@@ -136,6 +136,28 @@ export function Sidebar() {
                 Task 5
               </span>
             </button>
+
+            {/* 3c. Sub-item: Evaluation (Task 6) */}
+            <button
+              onClick={() => setActiveView("evaluation")}
+              className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all ${
+                activeView === "evaluation"
+                  ? "bg-[#7C2CFF]/15 text-purple-100 border border-[#7C2CFF]/50 shadow-sm"
+                  : "text-slate-400 hover:text-slate-100 hover:bg-[#121520]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck
+                  className={`w-3.5 h-3.5 ${
+                    activeView === "evaluation" ? "text-[#22C55E]" : "text-slate-500"
+                  }`}
+                />
+                <span>Evaluation</span>
+              </div>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
+                Task 6
+              </span>
+            </button>
           </div>
         </div>
 

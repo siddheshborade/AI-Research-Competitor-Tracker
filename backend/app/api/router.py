@@ -10,6 +10,7 @@ from app.api.v1 import (
     evidence_router,
     verification_router,
     dashboard_router,
+    evaluation_router,
 )
 
 api_router = APIRouter()
@@ -25,3 +26,4 @@ api_router.include_router(competitors_router)
 api_router.include_router(evidence_router)
 api_router.include_router(verification_router)
 api_router.include_router(dashboard_router)
+api_router.include_router(evaluation_router)

@@ -8,6 +8,7 @@ from app.api.v1.competitors import router as competitors_router
 from app.api.v1.evidence import router as evidence_router
 from app.api.v1.verification import router as verification_router
 from app.api.v1.dashboard import router as dashboard_router
+from app.api.v1.evaluation import router as evaluation_router
 
 __all__ = [
     "health_router",
@@ -20,4 +21,5 @@ __all__ = [
     "evidence_router",
     "verification_router",
     "dashboard_router",
+    "evaluation_router",
 ]
