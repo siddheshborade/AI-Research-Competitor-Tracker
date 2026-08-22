@@ -16,9 +16,10 @@ import {
 } from "lucide-react";
 import { useResearch } from "../context/ResearchContext";
 import { api } from "../services/api";
+import { TrackWiseLogo } from "../components/common/TrackWiseLogo";
 
 export function IntelligenceDashboard() {
-  const { setActiveView, competitors } = useResearch();
+  const { setActiveView, competitors, intelligenceItems } = useResearch();
 
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +29,7 @@ export function IntelligenceDashboard() {
     async function fetchDashboard() {
       try {
         const data = await api.getDashboard();
-        if (isMounted) {
+        if (isMounted && data) {
           setDashboardData(data);
         }
       } catch (err) {
@@ -45,9 +46,9 @@ export function IntelligenceDashboard() {
     };
   }, []);
 
-  const stats = dashboardData?.statistics || {
-    total_insights: 12,
-    total_competitors_tracked: competitors.length || 3,
+  const metrics = dashboardData?.metrics || {
+    total_insights: intelligenceItems?.length || 9,
+    total_competitors_tracked: competitors?.length || 3,
     active_threats: 2,
     emerging_signals: 4,
     unverified_claims: 1,
@@ -63,12 +64,10 @@ export function IntelligenceDashboard() {
     <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans">
       {/* Top Banner / Hero Header */}
       <div className="bg-[#0D0F16] rounded-2xl p-6 sm:p-8 border border-[#1A1F2C] shadow-nexus-card flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="space-y-2 relative z-10 max-w-2xl">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-mono font-bold uppercase text-[#A855F7] px-3 py-1 rounded-lg bg-[#240047]/60 border border-purple-500/30">
-              TrackWise Intelligence Center
-            </span>
-            <span className="text-xs font-mono text-[#22C55E] flex items-center gap-1">
+        <div className="space-y-3 relative z-10 max-w-2xl">
+          <div className="flex items-center gap-3 flex-wrap">
+            <TrackWiseLogo size="sm" showTagline={false} />
+            <span className="text-xs font-mono text-[#22C55E] flex items-center gap-1 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">
               <ShieldCheck className="w-3.5 h-3.5" />
               Autonomous Surveillance Active
             </span>
@@ -78,7 +77,7 @@ export function IntelligenceDashboard() {
             TrackWise Command Center
           </h1>
           <p className="text-xs sm:text-sm text-slate-400">
-            TrackWise helps you discover research, patents, competitor activity and market signals through autonomous AI-powered investigation.
+            Track the signals that matter. Research smarter, monitor competitors, and act earlier through autonomous AI-powered multi-agent investigation.
           </p>
         </div>
 

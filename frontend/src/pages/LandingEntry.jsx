@@ -2,21 +2,14 @@ import React, { useState } from "react";
 import { Sparkles, Play, Terminal, ArrowRight, ShieldCheck, Database, Layers, Radio, Compass, Building2, Zap, RefreshCw } from "lucide-react";
 import { useResearch } from "../context/ResearchContext";
 import { EXAMPLE_PROMPTS, RESEARCH_PRESETS } from "../services/mockData";
+import { TrackWiseLogo } from "../components/common/TrackWiseLogo";
 
 export function LandingEntry() {
-  const { startAutonomousResearch, agentStatus } = useResearch();
-  const [objective, setObjective] = useState(
-    "Monitor NVIDIA's recent AI research and identify threats to our computer vision product."
-  );
+  const { startAutonomousResearch, isRunning } = useResearch();
+  const [objective, setObjective] = useState("");
 
-  const isRunning =
-    agentStatus === "PLANNING" ||
-    agentStatus === "GATHERING" ||
-    agentStatus === "REASONING" ||
-    agentStatus === "SYNTHESIZING";
-
-  const handleSelectPrompt = (promptText) => {
-    setObjective(promptText);
+  const handleSelectPredefined = (text) => {
+    setObjective(text);
   };
 
   const handleStart = (e) => {
@@ -26,23 +19,27 @@ export function LandingEntry() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 py-6 pb-16">
+    <div className="max-w-5xl mx-auto space-y-10 py-6 pb-16 font-sans">
       {/* Hero Section */}
-      <div className="text-center space-y-4 relative">
+      <div className="text-center space-y-5 relative">
+        <div className="flex justify-center pb-2">
+          <TrackWiseLogo size="xl" showTagline={true} />
+        </div>
+
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#240047]/60 border border-purple-500/30 text-[#A855F7] text-xs font-mono font-semibold">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>TRACKWISE // AUTONOMOUS AGENT</span>
+          <Sparkles className="w-3.5 h-3.5 text-[#00D9FF]" />
+          <span>AUTONOMOUS INTELLIGENCE // REAL-TIME SURVEILLANCE</span>
         </div>
 
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-100 tracking-tight leading-tight">
-          Detect Early Market Signals. <br className="hidden sm:inline" />
+          Track the signals that matter. <br className="hidden sm:inline" />
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-[#A855F7] to-[#00D9FF]">
-            Investigate Autonomous Evidence.
+            Research smarter. Monitor competitors. Act earlier.
           </span>
         </h1>
 
         <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          TrackWise helps you discover research, patents, competitor activity and market signals through autonomous AI-powered investigation.
+          TrackWise autonomously monitors <strong>Research Papers</strong>, <strong>Patent Filings</strong>, <strong>Market News</strong>, <strong>Competitor Telemetry</strong>, and <strong>Emerging Signals</strong> to deliver verified decision-ready intelligence.
         </p>
       </div>
 

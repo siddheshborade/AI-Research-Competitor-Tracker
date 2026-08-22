@@ -15,6 +15,8 @@ import {
 import { useResearch } from "../../context/ResearchContext";
 import { useAuth } from "../../context/AuthContext";
 
+import { TrackWiseLogo } from "../common/TrackWiseLogo";
+
 export function Sidebar() {
   const {
     activeView,
@@ -29,15 +31,13 @@ export function Sidebar() {
     <aside className="w-64 bg-[#0D0F16] border-r border-[#1A1F2C] flex flex-col justify-between shrink-0 hidden md:flex min-h-[calc(100vh-4rem)] font-sans select-none">
       {/* Navigation List */}
       <div className="p-4 space-y-5">
+        {/* Brand Header */}
+        <div className="px-2 pt-1 pb-2 border-b border-[#1A1F2C]/60">
+          <TrackWiseLogo size="md" showTagline={true} />
+        </div>
+
         {/* Core Capabilities */}
         <div className="space-y-1">
-          <div className="px-3.5 pt-1 text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
-            TrackWise
-          </div>
-          <div className="px-3.5 pb-2 text-[10px] font-mono text-[#A855F7] leading-tight">
-            AI-powered research & competitor tracking.
-          </div>
-
           {/* 1. Dashboard */}
           <button
             onClick={() => setActiveView("dashboard")}
@@ -115,7 +115,7 @@ export function Sidebar() {
               </div>
             </button>
 
-            {/* 3b. Sub-item: Agent Framework */}
+            {/* 3b. Sub-item: Agent Framework (Task 5) */}
             <button
               onClick={() => setActiveView("framework")}
               className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all ${
@@ -132,6 +132,9 @@ export function Sidebar() {
                 />
                 <span>Agent Framework</span>
               </div>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-500/30">
+                Task 5
+              </span>
             </button>
           </div>
         </div>

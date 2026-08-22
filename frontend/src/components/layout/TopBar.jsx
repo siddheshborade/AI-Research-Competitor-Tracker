@@ -4,6 +4,8 @@ import { useResearch } from "../../context/ResearchContext";
 import { useAuth } from "../../context/AuthContext";
 import { Sparkles, Terminal, Play, Radio, ArrowLeft, Layers, ShieldCheck, Compass, LogOut, User as UserIcon } from "lucide-react";
 
+import { TrackWiseLogo } from "../common/TrackWiseLogo";
+
 export function TopBar() {
   const { activeObjective, agentStatus, setActiveView, isDemoMode, toggleMode } = useResearch();
   const { user, logout } = useAuth();
@@ -14,19 +16,9 @@ export function TopBar() {
       <div className="flex items-center gap-4 min-w-0">
         <button
           onClick={() => setActiveView("landing")}
-          className="flex items-center gap-3 shrink-0 text-left hover:opacity-95 transition-opacity"
+          className="flex items-center gap-2 shrink-0 text-left hover:opacity-95 transition-opacity"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7C2CFF] to-[#240047] flex items-center justify-center text-white shadow-nexus-glow border border-purple-400/30 font-mono font-bold text-sm">
-            TW
-          </div>
-          <div className="hidden sm:block">
-            <span className="text-xs font-mono font-bold tracking-wider text-slate-100 uppercase block">
-              TrackWise
-            </span>
-            <span className="text-[10px] font-mono text-[#A855F7] block">
-              AI-powered research & competitor tracking.
-            </span>
-          </div>
+          <TrackWiseLogo size="sm" showTagline={false} />
         </button>
 
         <div className="w-px h-6 bg-[#1A1F2C] hidden md:block" />

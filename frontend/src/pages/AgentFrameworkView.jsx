@@ -76,13 +76,13 @@ export function AgentFrameworkView() {
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#240047]/60 border border-purple-500/30 text-purple-300 text-xs font-mono font-semibold">
               <Zap className="w-3.5 h-3.5 text-[#00D9FF]" />
-              <span>TRACKWISE // LANGGRAPH MULTI-AGENT FRAMEWORK</span>
+              <span>LANGGRAPH MULTI-AGENT FRAMEWORK // TASK 5</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Autonomous Intelligence Agent
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
-              AI-powered research & competitor tracking. Stateful LangGraph orchestrator executing dynamic planning, parallel multi-agent inquiries, automated failure recovery, and adversarial red-teaming.
+              TrackWise AI-powered research & competitor tracking. Stateful LangGraph orchestration for dynamic planning, parallel multi-agent inquiries, failure recovery, tool fallback, conflicting evidence resolution, uncertainty estimation, memory-based reasoning, and adversarial red-team verification.
             </p>
           </div>
 

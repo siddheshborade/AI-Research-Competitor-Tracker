@@ -15,6 +15,8 @@ import {
   Search,
 } from "lucide-react";
 
+import { TrackWiseLogo } from "../components/common/TrackWiseLogo";
+
 export function LoginPage({ onSuccess }) {
   const { login, isLoading: isAuthLoading } = useAuth();
 
@@ -87,18 +89,9 @@ export function LoginPage({ onSuccess }) {
               <span>TRACKWISE // AGENT PLATFORM</span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7C2CFF] to-[#240047] flex items-center justify-center text-white font-mono font-bold text-base shadow-nexus-glow border border-purple-400/40">
-                TW
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white uppercase font-mono">
-                TrackWise
-              </h1>
+            <div className="pt-2">
+              <TrackWiseLogo size="xl" showTagline={true} />
             </div>
-
-            <p className="text-lg text-slate-300 font-medium leading-snug">
-              AI-powered research & competitor tracking.
-            </p>
 
             <blockquote className="text-sm text-slate-400 italic border-l-2 border-[#7C2CFF] pl-3 py-1 font-sans">
               "TrackWise helps you discover research, patents, competitor activity and market signals through autonomous AI-powered investigation."
@@ -134,6 +127,9 @@ export function LoginPage({ onSuccess }) {
         <div className="lg:col-span-6">
           <div className="bg-[#0D0F16] rounded-3xl p-7 sm:p-9 border border-[#1A1F2C] shadow-2xl relative">
             <div className="space-y-2 mb-6">
+              <div className="lg:hidden pb-3 mb-2 border-b border-[#1A1F2C]">
+                <TrackWiseLogo size="md" showTagline={true} />
+              </div>
               <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#A855F7]">
                 Enterprise Access
               </div>

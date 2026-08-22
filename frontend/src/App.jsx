@@ -74,6 +74,8 @@ function MainContent() {
   );
 }
 
+import { TrackWiseLogo } from "./components/common/TrackWiseLogo";
+
 function AuthenticatedApp() {
   const { isAuthenticated, isLoading } = useAuth();
   const { setActiveView } = useResearch();
@@ -81,10 +83,8 @@ function AuthenticatedApp() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#07080D] flex flex-col items-center justify-center space-y-4">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7C2CFF] to-[#240047] flex items-center justify-center text-white font-mono font-bold text-sm shadow-nexus-glow border border-purple-400/30 animate-pulse">
-          TW
-        </div>
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+        <TrackWiseLogo size="lg" showTagline={true} />
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400 pt-3">
           <div className="w-3.5 h-3.5 border-2 border-[#7C2CFF] border-t-transparent rounded-full animate-spin" />
           <span>Verifying Intelligence Credentials...</span>
         </div>
