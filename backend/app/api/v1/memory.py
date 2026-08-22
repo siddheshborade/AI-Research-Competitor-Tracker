@@ -2,7 +2,7 @@ from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 
 from app.db.session import get_db
 from app.schemas.common import StandardResponse
@@ -10,6 +10,7 @@ from app.engine.memory import memory_engine, ShortTermWorkingMemory, PreviousCon
 from app.models.agent import AgentRun, ToolCallRecord, Claim
 from app.models.insight import Insight
 from app.models.competitor import Competitor
+from app.models.evidence import Evidence
 
 router = APIRouter(prefix="/memory", tags=["Memory & Context"])
 
@@ -20,6 +21,7 @@ class MemorySearchRequest(BaseModel):
 
 
 @router.get("/current", response_model=StandardResponse[Dict[str, Any]])
+@router.get("/working", response_model=StandardResponse[Dict[str, Any]], include_in_schema=False)
 def get_current_working_memory():
     """Retrieve active or most recent short-term investigation working memory context."""
     wm = memory_engine.get_latest_working_memory()
@@ -110,6 +112,30 @@ def get_long_term_memory_history(
             "tracked_competitors_count": len(competitors)
         },
         message="Long-term memory history retrieved from persistent database."
+    )
+
+
+@router.get("/stats", response_model=StandardResponse[Dict[str, Any]])
+def get_memory_stats(db: Session = Depends(get_db)):
+    """Retrieve high-level memory ledger counts and storage health."""
+    total_runs = db.scalar(select(func.count(AgentRun.id))) or 0
+    total_insights = db.scalar(select(func.count(Insight.id))) or 0
+    total_evidence = db.scalar(select(func.count(Evidence.id))) or 0
+    total_tools = db.scalar(select(func.count(ToolCallRecord.id))) or 0
+    wm = memory_engine.get_latest_working_memory()
+
+    return StandardResponse(
+        success=True,
+        data={
+            "total_investigations_persisted": total_runs,
+            "total_insights_recorded": total_insights,
+            "total_evidence_stored": total_evidence,
+            "total_tool_calls_audited": total_tools,
+            "active_working_context": wm is not None,
+            "active_investigation_id": wm.investigation_id if wm else None,
+            "storage_engine": "SQLite Persistent Memory Ledger"
+        },
+        message="Memory stats retrieved successfully."
     )
 
 
