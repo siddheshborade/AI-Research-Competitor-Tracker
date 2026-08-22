@@ -68,9 +68,17 @@ export function TopBar() {
         {user && (
           <div className="hidden md:flex items-center gap-2 pl-2 border-l border-[#1A1F2C]">
             <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-[#07080D] border border-[#1A1F2C]">
-              <div className="w-5 h-5 rounded-full bg-[#7C2CFF]/20 border border-[#7C2CFF]/40 flex items-center justify-center text-[#A855F7]">
-                <UserIcon className="w-3 h-3" />
-              </div>
+              {user?.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt={user?.name || "User"}
+                  className="w-5 h-5 rounded-full border border-[#7C2CFF]/40 object-cover"
+                />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-[#7C2CFF]/20 border border-[#7C2CFF]/40 flex items-center justify-center text-[#A855F7]">
+                  <UserIcon className="w-3 h-3" />
+                </div>
+              )}
               <span className="text-xs font-sans text-slate-200 font-medium truncate max-w-[120px]">
                 {user.name || user.email.split("@")[0]}
               </span>

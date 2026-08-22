@@ -4,11 +4,39 @@ import { runSimulatedAgent } from "../services/agentSimulator";
 
 const ResearchContext = createContext(null);
 
+const getInitialView = () => {
+  if (typeof window === "undefined") return "dashboard";
+  const path = window.location.pathname.replace(/^\//, "").toLowerCase();
+  const hash = window.location.hash.replace(/^#\/?/, "").toLowerCase();
+  const target = hash || path;
+
+  if (target.includes("research") || target === "landing") return "landing";
+  if (target.includes("activity") || target.includes("workspace")) return "workspace";
+  if (target.includes("memory")) return "memory";
+  if (target.includes("agent-framework") || target.includes("framework")) return "framework";
+  if (target.includes("opportunities") || target.includes("threats") || target.includes("signals")) return "threats";
+  if (target.includes("competitors")) return "competitors";
+  if (target.includes("graph")) return "graph";
+  if (target.includes("contradictions")) return "contradictions";
+  if (target.includes("gaps")) return "gaps";
+  if (target.includes("verification")) return "verification";
+  return "dashboard";
+};
+
 export function ResearchProvider({ children }) {
   const [activeObjective, setActiveObjective] = useState(
     "Monitor NVIDIA's recent AI research and identify threats to our computer vision product."
   );
-  const [activeView, setActiveView] = useState("landing"); // 'landing' | 'workspace' | 'dashboard' | 'studio' | 'graph' | 'contradictions' | 'signals' | 'gaps' | 'competitors' | 'verification'
+  const [activeView, setActiveView] = useState(getInitialView);
+
+  const handleSetActiveView = (newView) => {
+    setActiveView(newView);
+    if (typeof window !== "undefined" && !window.location.hash.includes("recovery")) {
+      try {
+        window.history.replaceState(null, "", `#${newView}`);
+      } catch (_) {}
+    }
+  };
   const [agentStatus, setAgentStatus] = useState("READY"); // 'READY' | 'PLANNING' | 'GATHERING' | 'REASONING' | 'SYNTHESIZING' | 'COMPLETED'
   const [agentSteps, setAgentSteps] = useState([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -178,7 +206,7 @@ export function ResearchProvider({ children }) {
     activeObjective,
     setActiveObjective,
     activeView,
-    setActiveView,
+    setActiveView: handleSetActiveView,
     agentStatus,
     setAgentStatus,
     agentSteps,

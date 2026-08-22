@@ -200,9 +200,17 @@ export function Sidebar() {
       <div className="p-4 border-t border-[#1A1F2C] space-y-3">
         <div className="bg-[#07080D] p-3 rounded-xl border border-[#1A1F2C] flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-[#240047] border border-purple-500/40 flex items-center justify-center text-xs font-mono font-bold text-purple-200 shrink-0">
-              {user?.name ? user.name[0].toUpperCase() : "A"}
-            </div>
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user?.name || "User"}
+                className="w-7 h-7 rounded-lg border border-purple-500/40 object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-7 h-7 rounded-lg bg-[#240047] border border-purple-500/40 flex items-center justify-center text-xs font-mono font-bold text-purple-200 shrink-0">
+                {user?.name ? user.name[0].toUpperCase() : "A"}
+              </div>
+            )}
             <div className="min-w-0">
               <div className="text-xs font-semibold text-slate-200 truncate">
                 {user?.name || "Analyst User"}

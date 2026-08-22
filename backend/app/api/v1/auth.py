@@ -1,4 +1,6 @@
 import hashlib
+import json
+import base64
 import secrets
 from fastapi import APIRouter, Depends, HTTPException, Header, status
 from sqlalchemy.orm import Session
@@ -17,14 +19,27 @@ _ACTIVE_SESSIONS: dict[str, str] = {}
 
 def _hash_password(password: str) -> str:
     """Deterministic salted hash for demo/local authentication."""
-    return hashlib.sha256(f"nexus_salt_{password}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"trackwise_salt_{password}".encode("utf-8")).hexdigest()
+
+
+def _decode_jwt_payload_unverified(token: str) -> Optional[dict]:
+    """Safely extracts JWT claims (e.g. from Supabase Auth tokens)."""
+    try:
+        parts = token.split(".")
+        if len(parts) >= 2:
+            padded = parts[1] + "=" * ((4 - len(parts[1]) % 4) % 4)
+            data = base64.urlsafe_b64decode(padded.encode("utf-8"))
+            return json.loads(data)
+    except Exception:
+        pass
+    return None
 
 
 def get_current_user(
     authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ) -> User:
-    """Extract and validate user from Authorization header."""
+    """Extract and validate user from Authorization header (supports Local and Supabase Auth tokens)."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -36,10 +51,38 @@ def get_current_user(
     
     if not user_id:
         # Check if default demo token
-        if token.startswith("nx_demo_token_"):
+        if token.startswith("nx_demo_token_") or token.startswith("tw_demo_token_"):
             user = db.query(User).first()
             if user:
                 return user
+
+        # Check if Supabase JWT
+        supabase_payload = _decode_jwt_payload_unverified(token)
+        if supabase_payload and ("sub" in supabase_payload or "email" in supabase_payload):
+            email = supabase_payload.get("email", "")
+            sub_id = supabase_payload.get("sub", "")
+            user = None
+            if email:
+                user = db.query(User).filter(User.email == email.lower()).first()
+            if not user and sub_id:
+                user = db.query(User).filter(User.id == sub_id).first()
+            if not user and email:
+                # Link / seed Supabase user into database
+                user_meta = supabase_payload.get("user_metadata", {})
+                name = user_meta.get("full_name") or user_meta.get("name") or email.split("@")[0].replace(".", " ").title()
+                user = User(
+                    id=sub_id if sub_id else None,
+                    email=email.lower(),
+                    name=name,
+                    workspace_name=f"{name}'s Workspace",
+                    is_active=True
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            if user:
+                return user
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session has expired or is invalid. Please sign in again."
