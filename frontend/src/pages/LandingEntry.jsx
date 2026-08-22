@@ -1,58 +1,89 @@
 import React, { useState } from "react";
-import { Sparkles, Play, Terminal, ArrowRight, ShieldCheck, Database, Layers, Radio, Compass, Building2, Zap, RefreshCw } from "lucide-react";
+import {
+  Sparkles,
+  Play,
+  Terminal,
+  ArrowRight,
+  ShieldCheck,
+  Database,
+  Layers,
+  Radio,
+  Compass,
+  Building2,
+  Zap,
+  RefreshCw,
+  Sliders,
+  AlertTriangle,
+  FileText,
+  Globe,
+  Brain,
+} from "lucide-react";
 import { useResearch } from "../context/ResearchContext";
-import { EXAMPLE_PROMPTS, RESEARCH_PRESETS } from "../services/mockData";
+import { EXAMPLE_PROMPTS } from "../services/mockData";
 import { TrackWiseLogo } from "../components/common/TrackWiseLogo";
 
 export function LandingEntry() {
   const { startAutonomousResearch, isRunning } = useResearch();
   const [objective, setObjective] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const handleSelectPredefined = (text) => {
+  // Scope controls
+  const [scope, setScope] = useState({
+    research: true,
+    patents: true,
+    news: true,
+    competitors: true,
+    memory: true,
+  });
+
+  // Resource budget & Chaos Mode
+  const [maxIterations, setMaxIterations] = useState(6);
+  const [maxToolCalls, setMaxToolCalls] = useState(12);
+  const [chaosMode, setChaosMode] = useState(false);
+
+  const handleSelectPrompt = (text) => {
     setObjective(text);
   };
 
   const handleStart = (e) => {
     e.preventDefault();
     if (!objective.trim() || isRunning) return;
-    startAutonomousResearch(objective);
+    startAutonomousResearch(objective, {
+      scope,
+      max_iterations: maxIterations,
+      max_tool_calls: maxToolCalls,
+      chaos_mode: chaosMode,
+    });
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 py-6 pb-16 font-sans">
-      {/* Hero Section */}
-      <div className="text-center space-y-5 relative">
-        <div className="flex justify-center pb-2">
-          <TrackWiseLogo size="xl" showTagline={true} />
+    <div className="max-w-5xl mx-auto space-y-8 py-4 pb-16 font-sans">
+      {/* Title / Context Header */}
+      <div className="text-center space-y-3">
+        <div className="flex justify-center pb-1">
+          <TrackWiseLogo size="lg" showTagline={false} />
         </div>
 
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#240047]/60 border border-purple-500/30 text-[#A855F7] text-xs font-mono font-semibold">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#240047]/60 border border-purple-500/30 text-[#A855F7] text-xs font-mono font-semibold">
           <Sparkles className="w-3.5 h-3.5 text-[#00D9FF]" />
-          <span>AUTONOMOUS INTELLIGENCE // REAL-TIME SURVEILLANCE</span>
+          <span>AUTONOMOUS MULTI-AGENT INVESTIGATION</span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-100 tracking-tight leading-tight">
-          Track the signals that matter. <br className="hidden sm:inline" />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-[#A855F7] to-[#00D9FF]">
-            Research smarter. Monitor competitors. Act earlier.
-          </span>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-100 tracking-tight">
+          New Research
         </h1>
-
-        <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          TrackWise autonomously monitors <strong>Research Papers</strong>, <strong>Patent Filings</strong>, <strong>Market News</strong>, <strong>Competitor Telemetry</strong>, and <strong>Emerging Signals</strong> to deliver verified decision-ready intelligence.
+        <p className="text-sm text-slate-400 max-w-xl mx-auto">
+          Tell TrackWise what you want to investigate. The autonomous planner dynamically decomposes your goal across specialized agent workers.
         </p>
       </div>
 
       {/* Investigation Input Box */}
-      <div className="bg-[#0D0F16] rounded-2xl p-6 sm:p-8 border border-[#1A1F2C] shadow-nexus-card relative overflow-hidden">
-        {/* Glow effect */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#7C2CFF]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-
+      <div className="bg-[#0D0F16] rounded-2xl p-6 sm:p-8 border border-[#1A1F2C] shadow-nexus-card relative overflow-hidden space-y-5">
         <form onSubmit={handleStart} className="space-y-5 relative z-10">
           <div>
-            <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-2.5 flex items-center justify-between">
-              <span>Research Objective / Competitor Target</span>
-              <span className="text-slate-500 font-normal">Autonomous Multi-Step Investigation</span>
+            <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-2 flex items-center justify-between">
+              <span>What would you like TrackWise to investigate?</span>
+              <span className="text-slate-500 font-normal">Autonomous Multi-Agent Planning</span>
             </label>
 
             <textarea
@@ -60,20 +91,133 @@ export function LandingEntry() {
               onChange={(e) => setObjective(e.target.value)}
               disabled={isRunning}
               rows={3}
-              placeholder="Enter your strategic objective (e.g. Monitor competitor X's edge vision patents, evaluate 1-bit LLM benchmarks, detect supply chain risks)..."
+              placeholder="e.g. Monitor NVIDIA's recent AI research and identify threats to our computer vision product..."
               className="w-full bg-[#07080D] border border-[#1A1F2C] rounded-xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#7C2CFF] focus:ring-1 focus:ring-[#7C2CFF] transition-all resize-none font-sans"
             />
           </div>
 
+          {/* Optional Scope Controls */}
+          <div className="space-y-2">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              Investigation Scope:
+            </span>
+            <div className="flex flex-wrap gap-2.5">
+              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#07080D] border border-[#1A1F2C] text-xs font-medium text-slate-300 cursor-pointer hover:border-[#7C2CFF]/40 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={scope.research}
+                  onChange={(e) => setScope({ ...scope, research: e.target.checked })}
+                  className="w-3.5 h-3.5 accent-[#7C2CFF] rounded"
+                />
+                <FileText className="w-3.5 h-3.5 text-[#00D9FF]" />
+                <span>Research Papers</span>
+              </label>
+
+              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#07080D] border border-[#1A1F2C] text-xs font-medium text-slate-300 cursor-pointer hover:border-[#7C2CFF]/40 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={scope.patents}
+                  onChange={(e) => setScope({ ...scope, patents: e.target.checked })}
+                  className="w-3.5 h-3.5 accent-[#7C2CFF] rounded"
+                />
+                <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                <span>Patents</span>
+              </label>
+
+              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#07080D] border border-[#1A1F2C] text-xs font-medium text-slate-300 cursor-pointer hover:border-[#7C2CFF]/40 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={scope.news}
+                  onChange={(e) => setScope({ ...scope, news: e.target.checked })}
+                  className="w-3.5 h-3.5 accent-[#7C2CFF] rounded"
+                />
+                <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                <span>News & Web</span>
+              </label>
+
+              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#07080D] border border-[#1A1F2C] text-xs font-medium text-slate-300 cursor-pointer hover:border-[#7C2CFF]/40 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={scope.competitors}
+                  onChange={(e) => setScope({ ...scope, competitors: e.target.checked })}
+                  className="w-3.5 h-3.5 accent-[#7C2CFF] rounded"
+                />
+                <Building2 className="w-3.5 h-3.5 text-amber-400" />
+                <span>Competitors</span>
+              </label>
+
+              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#07080D] border border-[#1A1F2C] text-xs font-medium text-slate-300 cursor-pointer hover:border-[#7C2CFF]/40 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={scope.memory}
+                  onChange={(e) => setScope({ ...scope, memory: e.target.checked })}
+                  className="w-3.5 h-3.5 accent-[#7C2CFF] rounded"
+                />
+                <Brain className="w-3.5 h-3.5 text-[#00D9FF]" />
+                <span>Historical Memory</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Toggle Advanced Controls */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="text-xs font-mono text-[#A855F7] hover:underline flex items-center gap-1.5"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>{showAdvanced ? "Hide Advanced Settings" : "Configure Advanced Settings (Budget & Chaos Mode)"}</span>
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-3 p-4 rounded-xl bg-[#07080D] border border-[#1A1F2C] grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div className="space-y-1">
+                  <span className="text-slate-400">Max Iterations</span>
+                  <input
+                    type="number"
+                    min="2"
+                    max="10"
+                    value={maxIterations}
+                    onChange={(e) => setMaxIterations(Number(e.target.value))}
+                    className="w-full bg-[#121520] border border-[#1A1F2C] rounded-lg px-3 py-1.5 text-slate-100 font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-slate-400">Max Tool Calls</span>
+                  <input
+                    type="number"
+                    min="4"
+                    max="24"
+                    value={maxToolCalls}
+                    onChange={(e) => setMaxToolCalls(Number(e.target.value))}
+                    className="w-full bg-[#121520] border border-[#1A1F2C] rounded-lg px-3 py-1.5 text-slate-100 font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-slate-400">Chaos Mode (Fault Injection)</span>
+                  <button
+                    type="button"
+                    onClick={() => setChaosMode(!chaosMode)}
+                    className={`w-full py-1.5 rounded-lg font-mono font-bold transition-all border ${
+                      chaosMode
+                        ? "bg-red-950/80 text-red-300 border-red-500/50"
+                        : "bg-[#121520] text-slate-400 border-[#1A1F2C]"
+                    }`}
+                  >
+                    {chaosMode ? "CHAOS MODE: ON" : "CHAOS MODE: OFF"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Action Row */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-3 border-t border-[#1A1F2C]">
-            <div className="flex items-center gap-3 text-xs font-mono text-slate-400 flex-wrap">
-              <span className="flex items-center gap-1.5 bg-[#121520] px-2.5 py-1 rounded-lg border border-[#1A1F2C]">
-                <Database className="w-3.5 h-3.5 text-[#00D9FF]" /> Web Search API
-              </span>
-              <span>+</span>
-              <span className="flex items-center gap-1.5 bg-[#121520] px-2.5 py-1 rounded-lg border border-[#1A1F2C]">
-                <Layers className="w-3.5 h-3.5 text-[#A855F7]" /> Research/Paper API
-              </span>
+            <div className="text-xs font-mono text-slate-500">
+              * The dynamic planner automatically orchestrates tools and agents based on the objective.
             </div>
 
             <button
@@ -101,7 +245,7 @@ export function LandingEntry() {
         </form>
       </div>
 
-      {/* Example Prompts */}
+      {/* Preset Investigation Scenarios */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
