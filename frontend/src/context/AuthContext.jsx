@@ -323,6 +323,45 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
+   * Update User Profile (Name, Avatar, Workspace)
+   */
+  const updateProfile = useCallback(async ({ name, avatar_url, workspace_name }) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      if (isSupabaseConfigured() && session) {
+        const { data, error: updateError } = await supabase.auth.updateUser({
+          data: {
+            full_name: name,
+            avatar_url: avatar_url,
+            workspace_name: workspace_name,
+          },
+        });
+        if (updateError) throw updateError;
+        if (data?.user) {
+          setUser(formatUser(data.user));
+        }
+      } else {
+        setUser((prev) => ({
+          ...prev,
+          name: name || prev?.name,
+          avatar_url: avatar_url !== undefined ? avatar_url : prev?.avatar_url,
+          workspace_name: workspace_name || prev?.workspace_name,
+        }));
+      }
+      return true;
+    } catch (err) {
+      const msg = err.message || "Failed to update profile.";
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session]);
+
+
+
+  /**
    * Real Supabase Sign Out
    */
   const signOut = useCallback(async () => {
@@ -360,6 +399,7 @@ export function AuthProvider({ children }) {
     signOut,
     resetPassword,
     updatePassword,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
