@@ -9,6 +9,14 @@ from app.core.exceptions import EntityNotFoundException
 
 class EvidenceService:
     @staticmethod
+    def get_all_evidence(db: Session, run_id: Optional[str] = None, limit: int = 50) -> List[Evidence]:
+        stmt = select(Evidence)
+        if run_id:
+            stmt = stmt.where(Evidence.run_id == run_id)
+        stmt = stmt.limit(limit)
+        return list(db.execute(stmt).scalars().all())
+
+    @staticmethod
     def get_evidence_by_id(db: Session, evidence_id: str) -> Evidence:
         stmt = select(Evidence).where(Evidence.id == evidence_id)
         evidence = db.execute(stmt).scalars().first()

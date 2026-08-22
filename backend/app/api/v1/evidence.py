@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Query
 from sqlalchemy.orm import Session
 from app.api.deps import DBDep
@@ -7,6 +7,24 @@ from app.schemas.evidence import EvidenceResponse, EvidenceGraphData
 from app.services.evidence_service import EvidenceService
 
 router = APIRouter(prefix="/evidence", tags=["Evidence"])
+
+
+@router.get(
+    "",
+    response_model=StandardResponse[List[EvidenceResponse]],
+    summary="List Evidence Items",
+    description="Retrieves a list of collected evidence records with credibility scores and provenance."
+)
+def list_evidence(
+    run_id: Optional[str] = Query(None, description="Filter by Run ID"),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = DBDep
+) -> StandardResponse[List[EvidenceResponse]]:
+    evidence_list = EvidenceService.get_all_evidence(db, run_id=run_id, limit=limit)
+    return StandardResponse(
+        success=True,
+        data=[EvidenceResponse.model_validate(e) for e in evidence_list]
+    )
 
 
 @router.get(
