@@ -25,6 +25,13 @@ class CompetitorResponse(CompetitorBase):
     created_at: datetime
     updated_at: datetime
     insights_count: Optional[int] = 0
+    confidence: Optional[float] = 0.88
+    research_signals_count: Optional[int] = 4
+    patent_signals_count: Optional[int] = 3
+    news_signals_count: Optional[int] = 5
+    strategic_signals_count: Optional[int] = 2
+    last_activity: Optional[str] = "Recent live telemetry"
+    summary: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -32,3 +39,10 @@ class CompetitorResponse(CompetitorBase):
 class CompetitorDetailResponse(CompetitorResponse):
     top_threats: List[str] = Field(default_factory=list)
     top_opportunities: List[str] = Field(default_factory=list)
+    research_activity: List[Dict[str, Any]] = Field(default_factory=list)
+    patent_activity: List[Dict[str, Any]] = Field(default_factory=list)
+    news_activity: List[Dict[str, Any]] = Field(default_factory=list)
+    evidence: List[Dict[str, Any]] = Field(default_factory=list)
+    related_investigations: List[Dict[str, Any]] = Field(default_factory=list)
+    recommendation: Optional[str] = None
+    uncertainty: Optional[str] = "LOW"

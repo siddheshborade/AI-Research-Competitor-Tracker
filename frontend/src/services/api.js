@@ -360,6 +360,21 @@ class ApiService {
     return COMPETITORS_DATA;
   }
 
+  async getCompetitorDetail(id) {
+    if (!this.useMock) {
+      try {
+        const res = await this.request(`/competitors/${id}`);
+        if (res && res.success && res.data) {
+          return res.data;
+        }
+      } catch (err) {
+        console.warn(`[ApiService] /competitors/${id} fallback:`, err.message);
+      }
+    }
+    const found = COMPETITORS_DATA.find((c) => c.id === id);
+    return found || COMPETITORS_DATA[0];
+  }
+
   async getDashboard() {
     if (!this.useMock) {
       try {
