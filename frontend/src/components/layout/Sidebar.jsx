@@ -27,7 +27,7 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="w-64 bg-[#0D0F16] border-r border-[#1A1F2C] flex flex-col justify-between shrink-0 hidden md:flex min-h-[calc(100vh-4rem)] font-sans select-none">
+      <aside className="w-64 bg-[#0D0F16] border-r border-[#1A1F2C] flex flex-col shrink-0 hidden md:flex min-h-[calc(100vh-4rem)] font-sans select-none overflow-y-auto">
         {/* Navigation Section */}
         <div className="p-3.5 space-y-4">
           {/* Brand Header */}
@@ -203,40 +203,40 @@ export function Sidebar() {
               </div>
             </button>
           </div>
-        </div>
 
-        {/* System Section at Bottom */}
-        <div className="p-3.5 border-t border-[#1A1F2C] space-y-1 bg-[#07080D]/40">
-          <div className="px-3.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
-            System
+          {/* Section: System */}
+          <div className="space-y-1 pt-3 border-t border-[#1A1F2C]">
+            <div className="px-3.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              System
+            </div>
+
+            {/* Settings */}
+            <button
+              onClick={() => setIsSettingsModalOpen(true)}
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-[#121520] transition-colors"
+            >
+              <Settings className="w-4 h-4 text-slate-500" />
+              <span>Settings</span>
+            </button>
+
+            {/* Profile */}
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-[#121520] transition-colors"
+            >
+              <User className="w-4 h-4 text-slate-500" />
+              <span>Profile</span>
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={() => logout()}
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/30 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
           </div>
-
-          {/* Settings */}
-          <button
-            onClick={() => setIsSettingsModalOpen(true)}
-            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-[#121520] transition-colors"
-          >
-            <Settings className="w-4 h-4 text-slate-500" />
-            <span>Settings</span>
-          </button>
-
-          {/* Profile */}
-          <button
-            onClick={() => setIsProfileModalOpen(true)}
-            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-[#121520] transition-colors"
-          >
-            <User className="w-4 h-4 text-slate-500" />
-            <span>Profile</span>
-          </button>
-
-          {/* Logout */}
-          <button
-            onClick={() => logout()}
-            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/30 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Logout</span>
-          </button>
         </div>
       </aside>
 
