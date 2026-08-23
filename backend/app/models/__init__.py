@@ -7,6 +7,7 @@ from app.models.evidence import Evidence, EvidenceRelationship
 from app.models.insight import Insight, insight_evidence_association
 from app.models.verification import VerificationRecord
 from app.models.agent import AgentRun, ToolCallRecord, Claim, ClaimEvidence
+from app.models.trace import Trace, TraceSpan
 
 __all__ = [
     "Base",
@@ -24,4 +25,6 @@ __all__ = [
     "ToolCallRecord",
     "Claim",
     "ClaimEvidence",
+    "Trace",
+    "TraceSpan",
 ]

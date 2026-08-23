@@ -11,6 +11,7 @@ from app.api.v1 import (
     verification_router,
     dashboard_router,
     evaluation_router,
+    traces_router,
 )
 
 api_router = APIRouter()
@@ -27,3 +28,4 @@ api_router.include_router(evidence_router)
 api_router.include_router(verification_router)
 api_router.include_router(dashboard_router)
 api_router.include_router(evaluation_router)
+api_router.include_router(traces_router)

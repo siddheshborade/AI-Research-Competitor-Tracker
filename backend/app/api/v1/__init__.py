@@ -9,6 +9,7 @@ from app.api.v1.evidence import router as evidence_router
 from app.api.v1.verification import router as verification_router
 from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.evaluation import router as evaluation_router
+from app.api.v1.traces import router as traces_router
 
 __all__ = [
     "health_router",
@@ -22,4 +23,5 @@ __all__ = [
     "verification_router",
     "dashboard_router",
     "evaluation_router",
+    "traces_router",
 ]

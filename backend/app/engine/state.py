@@ -26,14 +26,16 @@ class ResourceBudget(BaseModel):
 
 class AgentGraphState(TypedDict, total=False):
     """
-    Task 5 Comprehensive Shared Agent State for LangGraph Orchestration.
+    Task 5 & Task 7 Comprehensive Shared Agent State for LangGraph Orchestration & Observability.
     Serializable for MemorySaver / SQLite Checkpointing.
     """
     investigation_id: str
+    trace_id: Optional[str]
     user_goal: str
     domain: str
     target_competitors: List[str]
     user_id: Optional[str]
+    failure_injection: Optional[str]
     
     # Hypothesis Engine
     hypothesis: str

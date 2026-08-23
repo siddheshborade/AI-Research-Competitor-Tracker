@@ -10,6 +10,7 @@ from app.engine.langgraph_orchestrator import langgraph_orchestrator
 from app.engine.tools.schemas import NormalizedEvidence, ToolResult
 from app.engine.tools.registry import tool_registry
 from app.engine.memory import memory_engine, ShortTermWorkingMemory, PreviousContext, MemoryTimelineEvent
+from app.services.tracing_service import tracing_service
 from app.core.config import settings
 from app.core.logging import logger
 
@@ -63,19 +64,21 @@ class AgentRunResult(BaseModel):
 
 class AgentLoopController:
     """
-    Task 5 Autonomous Multi-Agent Loop Controller powered by LangGraph.
+    Task 5 & Task 7 Autonomous Multi-Agent Loop Controller powered by LangGraph & Tracing.
     
     Orchestration Flow:
-      1. Task 4 Memory Recall: Retrieves historical context from SQLite database.
-      2. LangGraph StateGraph Execution:
-         - Planner Node (Hypothesis formulation + dynamic decomposition)
-         - Parallel Dispatch (Research, Patent, News, Competitor agents concurrent execution)
+      1. Task 7 Tracing Initialization: Starts root trace with unique trace_id.
+      2. Task 4 Memory Recall: Retrieves historical context from SQLite database.
+      3. LangGraph StateGraph Execution:
+         - Planner Node (Hypothesis formulation + dynamic decomposition + decision span)
+         - Parallel Dispatch (Research, Patent, News, Competitor agents concurrent execution + tool spans)
          - Evidence Merger & Conflict Detector
          - Verification Agent & Hypothesis Evaluator
          - Self-Evaluator & Loop Detector
          - Autonomous Replanner & Red-Team Challenge
-         - Strategic Synthesis (WHAT -> WHY -> SO WHAT)
-      3. Task 4 Memory Persistence: Saves structured audit events and insight records to SQLite.
+         - Strategic Synthesis (WHAT -> WHY -> SO WHAT + LLM span)
+      4. Task 4 Memory Persistence: Saves structured audit events and insight records to SQLite.
+      5. Task 7 Tracing Persistence: Ends trace, computes total duration, span counts, tool calls, persists to SQLite.
     """
 
     def run(
@@ -86,16 +89,27 @@ class AgentLoopController:
         max_steps: Optional[int] = None,
         db: Optional[Session] = None,
         user_id: Optional[str] = None,
-        chaos_mode: bool = False
+        chaos_mode: bool = False,
+        failure_injection: Optional[str] = None
     ) -> AgentRunResult:
         run_id = f"run_{uuid.uuid4().hex[:12]}"
         max_steps = max_steps or settings.MAX_AGENT_STEPS
         competitors = competitors or []
         primary_comp = competitors[0] if competitors else "Target Competitor"
+        active_failure = failure_injection or ("patent_timeout" if chaos_mode else None)
 
-        logger.info(f"=== Starting Task 5 LangGraph Autonomous Run '{run_id}' for Objective: '{objective}' (Chaos Mode: {chaos_mode}) ===")
+        logger.info(f"=== Starting Task 5/7 LangGraph Autonomous Run '{run_id}' for Objective: '{objective}' (Chaos: {chaos_mode}, Failure Injection: {active_failure}) ===")
 
-        # 1. TASK 4: RETRIEVE RELEVANT LONG-TERM MEMORY FROM DATABASE
+        # 1. TASK 7: START ROOT INVESTIGATION TRACE
+        trace_id = tracing_service.start_trace(
+            investigation_id=run_id,
+            name=f"Investigation: {objective[:80]}",
+            user_id=user_id,
+            failure_injection=active_failure,
+            meta={"domain": domain, "competitors": competitors, "chaos_mode": chaos_mode}
+        )
+
+        # 2. TASK 4: RETRIEVE RELEVANT LONG-TERM MEMORY FROM DATABASE
         previous_context: Optional[PreviousContext] = None
         if db:
             previous_context = memory_engine.retrieve_relevant_long_term_memory(
@@ -105,7 +119,7 @@ class AgentLoopController:
                 competitors=competitors
             )
 
-        # 2. INITIALIZE TASK 4 SHORT-TERM WORKING MEMORY
+        # 3. INITIALIZE TASK 4 SHORT-TERM WORKING MEMORY
         working_memory: ShortTermWorkingMemory = memory_engine.get_or_create_working_memory(
             investigation_id=run_id,
             objective=objective,
@@ -135,13 +149,15 @@ class AgentLoopController:
             badge_label="🧠 MEMORY UPDATED"
         )
 
-        # 3. INITIALIZE LANGGRAPH SHARED STATE
+        # 4. INITIALIZE LANGGRAPH SHARED STATE WITH TRACE ID
         initial_state: AgentGraphState = {
             "investigation_id": run_id,
+            "trace_id": trace_id,
             "user_goal": objective,
             "domain": domain,
             "target_competitors": competitors,
             "user_id": user_id,
+            "failure_injection": active_failure,
             "hypothesis": "",
             "hypothesis_status": "UNRESOLVED",
             "plan": {},
@@ -188,14 +204,14 @@ class AgentLoopController:
             "so_what": "",
             "recommended_action": "",
             "status": "RUNNING",
-            "is_chaos_mode": chaos_mode
+            "is_chaos_mode": chaos_mode or bool(active_failure)
         }
 
-        # 4. EXECUTE LANGGRAPH WORKFLOW WITH CHECKPOINTING
+        # 5. EXECUTE LANGGRAPH WORKFLOW WITH CHECKPOINTING
         config = {"configurable": {"thread_id": run_id}}
         final_state: AgentGraphState = langgraph_orchestrator.graph.invoke(initial_state, config=config)
 
-        # 5. SYNC LANGGRAPH OUTPUT BACK TO TASK 4 WORKING MEMORY
+        # 6. SYNC LANGGRAPH OUTPUT BACK TO TASK 4 WORKING MEMORY
         for step_rec in final_state.get("tool_history", []):
             working_memory.record_step(
                 step=step_rec.get("step", 1),
@@ -249,13 +265,13 @@ class AgentLoopController:
             badge_label="✓ STRESS-TESTED"
         )
 
-        # 6. PERSIST COMPLETED INVESTIGATION TO DATABASE
+        # 7. PERSIST COMPLETED INVESTIGATION TO DATABASE
         what = final_state.get("what", "Strategic intelligence synthesized.")
         why = final_state.get("why", "Market signals observed.")
         so_what = final_state.get("so_what", "Defensive response advised.")
         classification = final_state.get("final_intelligence", {}).get("classification", "THREAT")
 
-        # 7. ASSEMBLE BACKWARD-COMPATIBLE AGENT RUN RESULT
+        # 8. ASSEMBLE BACKWARD-COMPATIBLE AGENT RUN RESULT
         claims_list = [
             ClaimRecord(
                 id=c.get("id") if (c.get("id") and str(c.get("id")).startswith("clm_")) else f"clm_{i+1:03d}_{uuid.uuid4().hex[:4]}",
@@ -295,6 +311,9 @@ class AgentLoopController:
                 tool_activities=tool_activities,
                 claims=claims_list
             )
+
+        # 9. TASK 7: FINALIZE TRACE AND PERSIST SPANS
+        tracing_service.end_trace(trace_id=trace_id, db=db)
 
         trust_data = final_state.get("trust_layer", {})
         trust_response = TrustLayerResponse(
@@ -341,6 +360,7 @@ class AgentLoopController:
                 "short_term": working_memory.get_safe_summary()
             },
             details={
+                "trace_id": trace_id,
                 "hypothesis": final_state.get("hypothesis"),
                 "hypothesis_status": final_state.get("hypothesis_status"),
                 "plan": final_state.get("plan"),
