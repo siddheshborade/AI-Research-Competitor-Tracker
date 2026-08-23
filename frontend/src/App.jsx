@@ -21,6 +21,7 @@ import { EmergingSignalsView } from "./pages/EmergingSignalsView";
 import { ResearchGapsView } from "./pages/ResearchGapsView";
 import { VerificationView } from "./pages/VerificationView";
 import { EvaluationView } from "./pages/EvaluationView";
+import { ObservabilityView } from "./pages/ObservabilityView";
 
 function MainContent() {
   const { activeView, toastMessage } = useResearch();
@@ -35,6 +36,9 @@ function MainContent() {
         return <MemoryView />;
       case "framework":
         return <AgentFrameworkView />;
+      case "observability":
+      case "traces":
+        return <ObservabilityView />;
       case "evaluation":
         return <EvaluationView />;
       case "threats":

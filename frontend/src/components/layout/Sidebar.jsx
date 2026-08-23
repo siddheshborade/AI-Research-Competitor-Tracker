@@ -133,6 +133,32 @@ export function Sidebar() {
             </button>
           </div>
 
+          {/* Section: Observability */}
+          <div className="space-y-1 pt-3 border-t border-[#1A1F2C]">
+            <div className="px-3.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              Observability
+            </div>
+
+            {/* Traces & Diagnostics */}
+            <button
+              onClick={() => setActiveView("observability")}
+              className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all ${
+                activeView === "observability" || activeView === "traces"
+                  ? "bg-[#7C2CFF]/15 text-purple-100 border border-[#7C2CFF]/50 shadow-sm font-semibold"
+                  : "text-slate-400 hover:text-slate-100 hover:bg-[#121520]"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Activity
+                  className={`w-4 h-4 ${
+                    activeView === "observability" || activeView === "traces" ? "text-[#A855F7]" : "text-slate-500"
+                  }`}
+                />
+                <span>Traces & Diagnostics</span>
+              </div>
+            </button>
+          </div>
+
           {/* Section: Intelligence */}
           <div className="space-y-1 pt-3 border-t border-[#1A1F2C]">
             <div className="px-3.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">

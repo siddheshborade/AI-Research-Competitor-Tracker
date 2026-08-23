@@ -947,6 +947,95 @@ class ApiService {
     const data = await this.getEvaluationResults();
     return data.baseline_comparison;
   }
+
+  // =========================================================================
+  // TASK 7: OBSERVABILITY & TRACING METHODS
+  // =========================================================================
+
+  async getTraces(limit = 20, status = "ALL") {
+    try {
+      const res = await this.request(`/traces?limit=${limit}&status=${status}`);
+      if (res && res.success && Array.isArray(res.data)) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn("[ApiService] /traces error:", err.message);
+    }
+    return [];
+  }
+
+  async getTraceSummaryMetrics() {
+    try {
+      const res = await this.request("/traces/summary/metrics");
+      if (res && res.success && res.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn("[ApiService] /traces/summary/metrics error:", err.message);
+    }
+    return {
+      total_traces: 0,
+      success_rate: 100.0,
+      average_duration_ms: 0,
+      total_spans: 0,
+      total_tool_calls: 0,
+      total_errors: 0,
+      agent_distribution: {},
+      tool_distribution: {}
+    };
+  }
+
+  async getTraceDetails(traceId) {
+    try {
+      const res = await this.request(`/traces/${traceId}`);
+      if (res && res.success && res.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn(`[ApiService] /traces/${traceId} error:`, err.message);
+    }
+    return null;
+  }
+
+  async getTraceSpans(traceId) {
+    try {
+      const res = await this.request(`/traces/${traceId}/spans`);
+      if (res && res.success && Array.isArray(res.data)) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn(`[ApiService] /traces/${traceId}/spans error:`, err.message);
+    }
+    return [];
+  }
+
+  async getTraceDiagnosis(traceId) {
+    try {
+      const res = await this.request(`/traces/${traceId}/diagnosis`);
+      if (res && res.success && res.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn(`[ApiService] /traces/${traceId}/diagnosis error:`, err.message);
+    }
+    return null;
+  }
+
+  async runTraceExperiment(objective = "Investigate NVIDIA patent filings and AI compute", domain = "Semiconductors", competitors = ["NVIDIA"]) {
+    try {
+      const res = await this.request("/traces/experiment/run", {
+        method: "POST",
+        body: JSON.stringify({ objective, domain, competitors }),
+      });
+      if (res && res.success && res.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn("[ApiService] /traces/experiment/run error:", err.message);
+      throw err;
+    }
+    return null;
+  }
 }
 
 export const api = new ApiService();

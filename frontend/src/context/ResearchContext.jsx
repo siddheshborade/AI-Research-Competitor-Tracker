@@ -14,6 +14,7 @@ const getInitialView = () => {
   if (target.includes("activity") || target.includes("workspace")) return "workspace";
   if (target.includes("memory")) return "memory";
   if (target.includes("agent-framework") || target.includes("framework")) return "framework";
+  if (target.includes("observability") || target.includes("traces") || target.includes("diagnostics")) return "observability";
   if (target.includes("evaluation") || target === "eval") return "evaluation";
   if (target.includes("opportunities") || target.includes("threats") || target.includes("signals")) return "threats";
   if (target.includes("competitors")) return "competitors";
