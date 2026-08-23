@@ -36,6 +36,43 @@ def create_research(
 
 
 @router.get(
+    "/search",
+    response_model=StandardResponse[Dict[str, Any]],
+    summary="Direct Research Intelligence Query",
+    description="Queries real research literature and academic publications (e.g., arXiv.org Atom API) and returns normalized evidence records."
+)
+def search_research_literature(
+    query: str = Query(..., description="Research question, keywords, or publication topic"),
+    max_results: int = Query(5, ge=1, le=20, description="Maximum number of research papers to retrieve")
+) -> StandardResponse[Dict[str, Any]]:
+    result = ResearchService.search_papers(query=query, max_results=max_results)
+    return StandardResponse(
+        success=True,
+        data=result,
+        message=f"Retrieved {result.get('count', 0)} normalized research papers from external research index."
+    )
+
+
+@router.post(
+    "/search",
+    response_model=StandardResponse[Dict[str, Any]],
+    summary="Direct Research Intelligence Query (POST)",
+    description="Queries real research literature and academic publications (e.g., arXiv.org Atom API) with payload."
+)
+def search_research_literature_post(
+    payload: Dict[str, Any]
+) -> StandardResponse[Dict[str, Any]]:
+    query = payload.get("query") or payload.get("message") or "latest research on AI agents"
+    max_results = int(payload.get("max_results", 5))
+    result = ResearchService.search_papers(query=query, max_results=max_results)
+    return StandardResponse(
+        success=True,
+        data=result,
+        message=f"Retrieved {result.get('count', 0)} normalized research papers from external research index."
+    )
+
+
+@router.get(
     "/{id}",
     response_model=StandardResponse[ResearchDetailResponse],
     summary="Get Research Objective & Findings",

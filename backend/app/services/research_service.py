@@ -147,3 +147,24 @@ class ResearchService:
         if not latest_run:
             raise EntityNotFoundException("ResearchRun for Objective", objective_id)
         return latest_run.step_history or []
+
+    @staticmethod
+    def search_papers(query: str, max_results: int = 5) -> Dict[str, Any]:
+        from app.engine.tools.research_papers import ResearchPapersTool
+        from app.engine.tools.schemas import ResearchPaperInput
+
+        tool = ResearchPapersTool()
+        result = tool.execute(ResearchPaperInput(query=query, max_results=max_results))
+        return {
+            "query": query,
+            "status": result.status,
+            "count": len(result.items),
+            "papers": [item.model_dump() for item in result.items],
+            "tool_name": result.tool_name,
+            "duration_ms": result.duration_ms,
+            "provenance": {
+                "source": "arXiv.org API",
+                "feed_type": "Atom 1.0 XML",
+                "normalized": True
+            }
+        }

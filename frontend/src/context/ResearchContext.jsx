@@ -236,6 +236,7 @@ export function ResearchProvider({ children }) {
     showToast,
     isLoading,
     startAutonomousResearch,
+    searchResearchPapers: (query, maxResults) => api.searchResearchPapers(query, maxResults),
     handleVerificationAction,
     verificationQueueCount,
   };
