@@ -66,7 +66,54 @@ class WebSearchTool:
             except Exception as e:
                 logger.warning(f"[WebSearchTool] Live web search request encountered error: {e}. Activating deterministic fallback.")
 
-        # 2. Resilient Structured Fallback (Always returns high-fidelity normalized evidence)
+        # 2. Live DuckDuckGo Open Search Query
+        if not items:
+            try:
+                import urllib.parse
+                from datetime import datetime
+                with httpx.Client(timeout=settings.EXTERNAL_API_TIMEOUT_SECONDS, follow_redirects=True) as client:
+                    ddg_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(input_data.query)}&format=json&no_html=1&skip_disambig=1"
+                    resp = client.get(ddg_url, headers={"User-Agent": "TrackWise-Intelligence-Agent/1.0"})
+                    if resp.status_code == 200:
+                        ddg_data = resp.json()
+                        abstract = ddg_data.get("AbstractText", "")
+                        heading = ddg_data.get("Heading", "")
+                        abs_url = ddg_data.get("AbstractURL", "")
+                        if abstract and heading:
+                            items.append(NormalizedEvidence(
+                                source_id=f"src_web_{uuid.uuid4().hex[:8]}",
+                                source_type="web",
+                                title=heading,
+                                publisher=abs_url.split("/")[2] if "//" in abs_url else "DuckDuckGo Knowledge",
+                                url=abs_url or "https://duckduckgo.com",
+                                published_at=datetime.utcnow().isoformat(),
+                                snippet=abstract[:280],
+                                content_summary=abstract[:500],
+                                relevance=0.92,
+                                credibility=0.90,
+                                extracted_facts={"query": input_data.query, "source": "duckduckgo_live"}
+                            ))
+                        for r_topic in ddg_data.get("RelatedTopics", [])[:input_data.max_results]:
+                            if isinstance(r_topic, dict) and "Text" in r_topic:
+                                r_text = r_topic.get("Text", "")
+                                first_url = r_topic.get("FirstURL", "")
+                                items.append(NormalizedEvidence(
+                                    source_id=f"src_web_{uuid.uuid4().hex[:8]}",
+                                    source_type="web",
+                                    title=r_text.split(" - ")[0] if " - " in r_text else r_text[:80],
+                                    publisher=first_url.split("/")[2] if "//" in first_url else "Web Intelligence",
+                                    url=first_url or "https://duckduckgo.com",
+                                    published_at=datetime.utcnow().isoformat(),
+                                    snippet=r_text[:280],
+                                    content_summary=r_text[:500],
+                                    relevance=0.89,
+                                    credibility=0.88,
+                                    extracted_facts={"query": input_data.query, "source": "duckduckgo_live_topic"}
+                                ))
+            except Exception as e:
+                logger.info(f"[WebSearchTool] DuckDuckGo open search query notice: {e}")
+
+        # 3. Resilient Structured Fallback (Always returns high-fidelity normalized evidence)
         if not items:
             query_lower = input_data.query.lower()
             target_company = "OmniHealth Labs" if "omnihealth" in query_lower else ("Acme Corp" if "acme" in query_lower else "Target Competitor")

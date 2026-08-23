@@ -143,60 +143,72 @@ class LangGraphOrchestrator:
         elif "threat" in goal.lower() or "compete" in goal.lower():
             hypothesis = f"{primary_comp}'s product advancements present an immediate competitive threat to existing market tiers."
 
-        # 2. Dynamic Task Decomposition
-        tasks: List[Dict[str, Any]] = []
+        # 2. Dynamic Task Decomposition according to Query Intent
         goal_lower = goal.lower()
+        
+        is_patent_intent = bool(re.search(r"\b(patent|patents|filing|filings|claims|assignee|uspto|epo|wipo|ip)\b", goal_lower))
+        is_research_intent = bool(re.search(r"\b(research|paper|papers|arxiv|preprint|academic|algorithm|benchmark|benchmarks|diffusion|transformer)\b", goal_lower))
+        is_news_intent = bool(re.search(r"\b(news|announcement|announcements|this week|what happened|press release|pr|media|launch|rollout)\b", goal_lower))
+        is_competitor_intent = bool(re.search(r"\b(competitor|pricing|hiring|threat|strategy|footprint|telemetry|expansion|tiers)\b", goal_lower))
 
-        # Task A: Academic / Technical Research
-        tasks.append({
+        candidate_tasks: List[Dict[str, Any]] = []
+
+        # Candidate 1: Research Agent (Foundation technical literature)
+        candidate_tasks.append({
             "id": f"task_{uuid.uuid4().hex[:6]}",
             "question": f"Investigate latest scientific publications and algorithmic preprints from {primary_comp}",
             "agent": "Research Agent",
             "tool": "research_papers",
-            "priority": "high",
+            "priority": "high" if is_research_intent else "medium",
             "status": "pending",
             "dependencies": [],
-            "reasoning": "Verify empirical algorithm claims, model benchmarks, and preprint architectures."
+            "reasoning": "Verify empirical algorithm claims, model benchmarks, and preprint architectures.",
+            "intent_weight": 3.0 if is_research_intent else (1.0 if is_patent_intent and not is_research_intent else 2.6)
         })
 
-        # Task B: Telemetry, Hiring & Competitor Footprint
-        tasks.append({
-            "id": f"task_{uuid.uuid4().hex[:6]}",
-            "question": f"Examine developer telemetry, pricing tiers, and specialized engineering hiring for {primary_comp}",
-            "agent": "Competitor Agent",
-            "tool": "competitor_telemetry",
-            "priority": "high" if "pricing" in goal_lower or "hiring" in goal_lower or "partner" in goal_lower else "medium",
-            "status": "pending",
-            "dependencies": [],
-            "reasoning": "Detect non-public operational expansion signals and commercial readiness."
-        })
-
-        # Task C: Patent Landscape & Claims
-        tasks.append({
+        # Candidate 2: Patent Agent (IP Landscape)
+        candidate_tasks.append({
             "id": f"task_{uuid.uuid4().hex[:6]}",
             "question": f"Search patent filings and intellectual property disclosures for {primary_comp}",
             "agent": "Patent Agent",
             "tool": "patent_intelligence",
-            "priority": "high" if "patent" in goal_lower or "hardware" in goal_lower else "medium",
+            "priority": "high" if is_patent_intent else "medium",
             "status": "pending",
             "dependencies": [],
-            "reasoning": "Establish priority filing dates, assignee validity, and hardware architectural scope."
+            "reasoning": "Establish priority filing dates, assignee validity, and hardware architectural scope.",
+            "intent_weight": 3.5 if is_patent_intent else 1.5
         })
 
-        # Task D: Industry Announcements & Market News
-        tasks.append({
+        # Candidate 3: News Agent (Trade Announcements)
+        candidate_tasks.append({
             "id": f"task_{uuid.uuid4().hex[:6]}",
             "question": f"Analyze trade news, press releases, and executive announcements for {primary_comp}",
             "agent": "News Agent",
             "tool": "industry_news",
-            "priority": "medium",
+            "priority": "high" if is_news_intent else "medium",
             "status": "pending",
             "dependencies": [],
-            "reasoning": "Track commercial product launch timelines and strategic partnership statements."
+            "reasoning": "Track commercial product launch timelines and strategic partnership statements.",
+            "intent_weight": 3.5 if is_news_intent else 1.3
         })
 
+        # Candidate 4: Competitor Telemetry Agent (Operational signals)
+        candidate_tasks.append({
+            "id": f"task_{uuid.uuid4().hex[:6]}",
+            "question": f"Examine developer telemetry, pricing tiers, and specialized engineering hiring for {primary_comp}",
+            "agent": "Competitor Agent",
+            "tool": "competitor_telemetry",
+            "priority": "high" if is_competitor_intent else "medium",
+            "status": "pending",
+            "dependencies": [],
+            "reasoning": "Detect non-public operational expansion signals and commercial readiness.",
+            "intent_weight": 2.2 if is_competitor_intent else 1.4
+        })
+
+        # Sort tasks by intent weight so the most relevant tools are dispatched first
+        candidate_tasks.sort(key=lambda t: t.get("intent_weight", 1.0), reverse=True)
         max_tasks = state.get("resource_budget", {}).get("max_steps", 4) or 4
-        tasks = tasks[:max(1, max_tasks)]
+        tasks = candidate_tasks[:max(1, max_tasks)]
 
         # Task 7 Tracing: Record Planner Agent Span and Plan Decision Span
         if trace_id:
@@ -620,14 +632,33 @@ class LangGraphOrchestrator:
         is_chaos = bool(state.get("chaos_mode") or state.get("is_chaos_mode"))
         trace_id = state.get("trace_id")
         
-        # Deduplicate evidence by title / URL
-        seen_titles = set()
-        merged_evidence = []
+        # Deduplicate evidence by title / URL and consolidate citations
+        seen_evidence: Dict[str, Dict[str, Any]] = {}
         for ev in raw_evidence:
             t = ev.get("title", "").strip().lower()
-            if t and t not in seen_titles:
-                seen_titles.add(t)
-                merged_evidence.append(ev)
+            if not t:
+                continue
+            if t in seen_evidence:
+                # Merge secondary source citation into primary evidence record
+                existing = seen_evidence[t]
+                sec_urls = existing.setdefault("all_sources", [existing.get("url")])
+                if ev.get("url") and ev.get("url") not in sec_urls:
+                    sec_urls.append(ev.get("url"))
+            else:
+                ev_copy = dict(ev)
+                rel = float(ev_copy.get("relevance", 0.85))
+                cred = float(ev_copy.get("credibility", ev_copy.get("reliability", 0.85)))
+                # Deterministic Priority Classification (Phase 6)
+                if rel >= 0.90 and cred >= 0.90:
+                    ev_copy["priority"] = "HIGH"
+                elif rel >= 0.75:
+                    ev_copy["priority"] = "MEDIUM"
+                else:
+                    ev_copy["priority"] = "LOW"
+                ev_copy["all_sources"] = [ev_copy.get("url")] if ev_copy.get("url") else []
+                seen_evidence[t] = ev_copy
+
+        merged_evidence = list(seen_evidence.values())
 
         # In Chaos Mode: inject conflicting evidence items for demonstration
         if is_chaos:
@@ -640,6 +671,7 @@ class LangGraphOrchestrator:
                 "content": "Competitor executive verified initial batch of AI accelerators shipping in Q2.",
                 "relevance": 0.92,
                 "reliability": 0.88,
+                "priority": "HIGH",
                 "verified": False,
                 "agent": "News Agent"
             })
@@ -652,17 +684,22 @@ class LangGraphOrchestrator:
                 "content": "Foundry reports indicate advanced packaging constraints pushing commercial rollout to Q4.",
                 "relevance": 0.90,
                 "reliability": 0.85,
+                "priority": "HIGH",
                 "verified": False,
                 "agent": "Competitor Agent"
             })
+
+        # Sort merged evidence by priority: HIGH -> MEDIUM -> LOW
+        priority_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+        merged_evidence.sort(key=lambda e: priority_order.get(e.get("priority", "MEDIUM"), 1))
 
         # Formulate Claims
         claims = [
             {
                 "id": f"clm_{i+1:03d}_{uuid.uuid4().hex[:4]}",
                 "claim_text": ev.get("title", f"Claim {i+1}"),
-                "status": "SUPPORTED" if ev.get("reliability", 0.8) >= 0.8 else "PARTIALLY_SUPPORTED",
-                "importance": "HIGH" if i < 3 else "MEDIUM",
+                "status": "SUPPORTED" if ev.get("reliability", ev.get("credibility", 0.8)) >= 0.8 else "PARTIALLY_SUPPORTED",
+                "importance": ev.get("priority", "HIGH" if i < 3 else "MEDIUM"),
                 "source": ev.get("publisher", "Source"),
                 "supporting_evidence_ids": [ev.get("source_id") or f"src_{i+1}"]
             }

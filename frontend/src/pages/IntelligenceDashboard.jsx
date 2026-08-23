@@ -41,6 +41,7 @@ export function IntelligenceDashboard() {
   const [memoryHistory, setMemoryHistory] = useState(null);
   const [traceMetrics, setTraceMetrics] = useState(null);
   const [latestTrace, setLatestTrace] = useState(null);
+  const [sourceCategory, setSourceCategory] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -302,58 +303,112 @@ export function IntelligenceDashboard() {
 
       {/* 4. Latest Intelligence & Agent Activity Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Latest Intelligence Feed */}
+        {/* Left Column: Research & Intelligence Feed */}
         <div className="lg:col-span-7 bg-[#0D0F16] rounded-2xl p-6 border border-[#1A1F2C] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1A1F2C]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#1A1F2C] gap-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#A855F7]" />
               <h2 className="text-sm font-bold text-slate-100">
-                Latest Strategic Intelligence
+                Research & Multi-Source Intelligence
               </h2>
             </div>
-            <button
-              onClick={() => setActiveView("threats")}
-              className="text-xs font-mono text-[#A855F7] hover:underline"
-            >
-              View Matrix
-            </button>
+
+            {/* Category Filter Tabs */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { id: "all", label: "All Sources" },
+                { id: "research", label: "Research" },
+                { id: "patent", label: "Patents" },
+                { id: "news", label: "News" },
+                { id: "competitor", label: "Competitors" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSourceCategory(tab.id)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer ${
+                    sourceCategory === tab.id
+                      ? "bg-[#7C2CFF]/20 text-[#A855F7] border border-[#7C2CFF]/50 font-bold"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-[#121520]"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {intelligenceItems.length > 0 ? (
             <div className="space-y-3">
-              {intelligenceItems.slice(0, 3).map((item, idx) => (
-                <div
-                  key={item.id || idx}
-                  className="p-4 rounded-xl bg-[#07080D] border border-[#1A1F2C] space-y-2 hover:border-[#7C2CFF]/40 transition-all"
+              {intelligenceItems
+                .filter((item) => {
+                  if (sourceCategory === "all") return true;
+                  const itemStr = `${item.title || ""} ${item.type || ""} ${item.source || ""} ${item.category || ""}`.toLowerCase();
+                  if (sourceCategory === "research") return itemStr.includes("research") || itemStr.includes("paper") || itemStr.includes("arxiv");
+                  if (sourceCategory === "patent") return itemStr.includes("patent") || itemStr.includes("uspto") || itemStr.includes("claims");
+                  if (sourceCategory === "news") return itemStr.includes("news") || itemStr.includes("wire") || itemStr.includes("announcement");
+                  if (sourceCategory === "competitor") return itemStr.includes("competitor") || itemStr.includes("threat") || itemStr.includes("omnihealth");
+                  return true;
+                })
+                .slice(0, 3)
+                .map((item, idx) => (
+                  <div
+                    key={item.id || idx}
+                    className="p-4 rounded-xl bg-[#07080D] border border-[#1A1F2C] space-y-2 hover:border-[#7C2CFF]/40 transition-all"
+                  >
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span
+                        className={`font-bold px-2 py-0.5 rounded border ${
+                          item.type === "threat"
+                            ? "bg-red-950/80 text-red-300 border-red-500/30"
+                            : "bg-emerald-950/80 text-emerald-300 border-emerald-500/30"
+                        }`}
+                      >
+                        {item.type?.toUpperCase() || "INTELLIGENCE"}
+                      </span>
+                      <span className="text-slate-400">{item.competitor || "OmniHealth Labs"}</span>
+                    </div>
+                    <h3 className="text-xs font-bold text-slate-200">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                      {item.summary || item.description || item.what}
+                    </p>
+                    <div className="flex items-center justify-between pt-1 text-[11px] font-mono text-slate-500">
+                      <span>Evidence Confidence: <strong className="text-emerald-400">{Math.round((item.confidence || 0.88) * 100)}%</strong></span>
+                      <span>{item.timestamp || "Live Surveillance"}</span>
+                    </div>
+                  </div>
+                ))}
+
+              {/* Task 2 Action Links */}
+              <div className="flex items-center justify-between pt-2 border-t border-[#1A1F2C] text-xs">
+                <button
+                  onClick={() => setActiveView("landing")}
+                  className="px-3 py-1.5 rounded-lg bg-[#7C2CFF]/20 text-purple-200 hover:bg-[#7C2CFF]/30 border border-[#7C2CFF]/40 font-semibold transition-all cursor-pointer"
                 >
-                  <div className="flex items-center justify-between text-[11px] font-mono">
-                    <span
-                      className={`font-bold px-2 py-0.5 rounded border ${
-                        item.type === "threat"
-                          ? "bg-red-950/80 text-red-300 border-red-500/30"
-                          : "bg-emerald-950/80 text-emerald-300 border-emerald-500/30"
-                      }`}
-                    >
-                      {item.type?.toUpperCase() || "INTELLIGENCE"}
-                    </span>
-                    <span className="text-slate-400">{item.competitor || "OmniHealth Labs"}</span>
-                  </div>
-                  <h3 className="text-xs font-bold text-slate-200">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                    {item.summary || item.description || item.what}
-                  </p>
-                  <div className="flex items-center justify-between pt-1 text-[11px] font-mono text-slate-500">
-                    <span>Evidence Confidence: <strong className="text-emerald-400">{Math.round((item.confidence || 0.88) * 100)}%</strong></span>
-                    <span>{item.timestamp || "Live Surveillance"}</span>
-                  </div>
-                </div>
-              ))}
+                  + Start Investigation
+                </button>
+                <button
+                  onClick={() => setActiveView("graph")}
+                  className="text-xs font-mono text-[#00D9FF] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Explore Evidence Matrix</span>
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="p-6 text-center text-xs text-slate-400 bg-[#07080D] rounded-xl border border-[#1A1F2C]">
-              No intelligence signals detected yet. Start an investigation to populate feed.
+            <div className="p-8 text-center space-y-3 bg-[#07080D] rounded-xl border border-[#1A1F2C]">
+              <div className="text-xs font-bold text-slate-300">No intelligence collected yet.</div>
+              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                Start an autonomous research investigation to begin tracking scientific papers, patent filings, news wires, and competitor footprints.
+              </p>
+              <button
+                onClick={() => setActiveView("landing")}
+                className="mt-2 px-3.5 py-1.5 rounded-lg bg-[#7C2CFF] hover:bg-[#6D28D9] text-white text-xs font-bold transition-all cursor-pointer"
+              >
+                + Start Investigation
+              </button>
             </div>
           )}
         </div>
