@@ -22,12 +22,16 @@ import { ResearchGapsView } from "./pages/ResearchGapsView";
 import { VerificationView } from "./pages/VerificationView";
 import { EvaluationView } from "./pages/EvaluationView";
 import { ObservabilityView } from "./pages/ObservabilityView";
+import { ResearchIntelligenceView } from "./pages/ResearchIntelligenceView";
 
 function MainContent() {
   const { activeView, toastMessage } = useResearch();
 
   const renderView = () => {
     switch (activeView) {
+      case "research-intelligence":
+      case "research":
+        return <ResearchIntelligenceView />;
       case "landing":
         return <LandingEntry />;
       case "workspace":

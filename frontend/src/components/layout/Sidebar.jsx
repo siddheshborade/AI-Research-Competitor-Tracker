@@ -8,6 +8,7 @@ import {
   Target,
   Users,
   ShieldCheck,
+  FlaskConical,
   Settings,
   User,
   LogOut,
@@ -164,6 +165,25 @@ export function Sidebar() {
             <div className="px-3.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
               Intelligence
             </div>
+
+            {/* Research Intelligence */}
+            <button
+              onClick={() => setActiveView("research-intelligence")}
+              className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                activeView === "research-intelligence" || activeView === "research"
+                  ? "bg-[#7C2CFF]/15 text-purple-100 border border-[#7C2CFF]/50 shadow-sm font-semibold"
+                  : "text-slate-400 hover:text-slate-100 hover:bg-[#121520]"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <FlaskConical
+                  className={`w-4 h-4 ${
+                    activeView === "research-intelligence" || activeView === "research" ? "text-[#A855F7]" : "text-slate-500"
+                  }`}
+                />
+                <span>🧪 Research Intelligence</span>
+              </div>
+            </button>
 
             {/* 6. Opportunities & Threats */}
             <button

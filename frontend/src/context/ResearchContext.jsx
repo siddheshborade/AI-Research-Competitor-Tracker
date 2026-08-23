@@ -10,7 +10,8 @@ const getInitialView = () => {
   const hash = window.location.hash.replace(/^#\/?/, "").toLowerCase();
   const target = hash || path;
 
-  if (target.includes("research") || target === "landing") return "landing";
+  if (target.includes("research-intelligence") || target === "research") return "research-intelligence";
+  if (target.includes("new-research") || target === "landing") return "landing";
   if (target.includes("activity") || target.includes("workspace")) return "workspace";
   if (target.includes("memory")) return "memory";
   if (target.includes("agent-framework") || target.includes("framework")) return "framework";
