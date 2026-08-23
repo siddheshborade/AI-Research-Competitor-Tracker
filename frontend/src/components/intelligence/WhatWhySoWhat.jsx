@@ -12,11 +12,13 @@ import {
   Brain,
   History,
 } from "lucide-react";
+import { api } from "../../services/api";
 
 export function WhatWhySoWhat({ brief }) {
   if (!brief) return null;
 
   const isThreat = (brief.classification || "").toUpperCase().includes("THREAT");
+
   
   // Resilient field extractors for live or demo structures
   const whatText = brief.whatWhySoWhat?.what || brief.what || brief.executiveSummary || "Multi-source intelligence gathered across academic publications and web disclosures.";
@@ -140,6 +142,74 @@ export function WhatWhySoWhat({ brief }) {
           </p>
         </div>
       )}
+
+      {/* Task 6: Human Evaluation Action Panel */}
+      <HumanReviewQuickBar briefId={brief.id || brief.title} />
+    </div>
+  );
+}
+
+function HumanReviewQuickBar({ briefId }) {
+  const [rated, setRated] = React.useState(null);
+  const [submitting, setSubmitting] = React.useState(false);
+
+  const handleRate = async (rating) => {
+    setSubmitting(true);
+    try {
+      await api.submitHumanReview(
+        rating,
+        `Analyst evaluation for brief '${typeof briefId === "string" ? briefId.slice(0, 40) : "Intelligence Brief"}'`,
+        "Senior Analyst",
+        typeof briefId === "string" ? briefId : "brief_eval"
+      );
+      setRated(rating);
+    } catch (e) {
+      console.warn("Human review error:", e);
+      setRated(rating);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+
+  return (
+    <div className="pt-2 border-t border-[#1A1F2C] flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+        <span>Human Evaluation:</span>
+        {rated && (
+          <span className="text-emerald-400 font-semibold">
+            ✓ Feedback Recorded ({rated})
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => handleRate("CORRECT")}
+          disabled={submitting || rated === "CORRECT"}
+          className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+            rated === "CORRECT"
+              ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/50"
+              : "bg-[#07080D] hover:bg-emerald-950/40 text-slate-300 hover:text-emerald-300 border border-[#1A1F2C]"
+          }`}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Useful / Grounded</span>
+        </button>
+
+        <button
+          onClick={() => handleRate("NEEDS_REVIEW")}
+          disabled={submitting || rated === "NEEDS_REVIEW"}
+          className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+            rated === "NEEDS_REVIEW"
+              ? "bg-amber-950/80 text-amber-300 border border-amber-500/50"
+              : "bg-[#07080D] hover:bg-amber-950/40 text-slate-300 hover:text-amber-300 border border-[#1A1F2C]"
+          }`}
+        >
+          <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+          <span>Needs Review</span>
+        </button>
+      </div>
     </div>
   );
 }

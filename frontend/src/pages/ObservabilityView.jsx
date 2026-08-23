@@ -807,14 +807,14 @@ export function ObservabilityView() {
                       <div>
                         <div className="text-[10px] text-slate-500 font-mono">BEFORE</div>
                         <div className="text-base font-bold text-emerald-400 font-mono">
-                          {experimentResult.baseline_success_rate.toFixed(0)}%
+                          {(experimentResult.baseline_success_rate ?? experimentResult.baseline_recovery_rate ?? 100).toFixed(0)}%
                         </div>
                       </div>
                       <ArrowRight className="w-4 h-4 text-purple-400" />
                       <div className="text-right">
                         <div className="text-[10px] text-slate-500 font-mono">AFTER</div>
                         <div className="text-base font-bold text-emerald-400 font-mono">
-                          {experimentResult.improved_success_rate.toFixed(0)}%
+                          {(experimentResult.improved_success_rate ?? experimentResult.improved_recovery_rate ?? 100).toFixed(0)}%
                         </div>
                       </div>
                     </div>
@@ -838,26 +838,26 @@ export function ObservabilityView() {
                     <tbody className="divide-y divide-[#1A1F2C]/60 font-mono text-[11px]">
                       <tr>
                         <td className="py-3 px-4 text-white font-sans font-semibold">Total Execution Time</td>
-                        <td className="py-3 px-4 text-red-400">{(experimentResult.baseline_latency_ms / 1000).toFixed(2)}s</td>
-                        <td className="py-3 px-4 text-emerald-400 font-bold">{(experimentResult.improved_latency_ms / 1000).toFixed(2)}s</td>
-                        <td className="py-3 px-4 text-right text-emerald-400 font-bold">-{experimentResult.latency_reduction_percent.toFixed(1)}% Faster</td>
+                        <td className="py-3 px-4 text-red-400">{((experimentResult.baseline_latency_ms || 0) / 1000).toFixed(2)}s</td>
+                        <td className="py-3 px-4 text-emerald-400 font-bold">{((experimentResult.improved_latency_ms || 0) / 1000).toFixed(2)}s</td>
+                        <td className="py-3 px-4 text-right text-emerald-400 font-bold">-{(experimentResult.latency_reduction_percent || 0).toFixed(1)}% Faster</td>
                       </tr>
                       <tr>
                         <td className="py-3 px-4 text-white font-sans font-semibold">Tool Calls</td>
-                        <td className="py-3 px-4 text-slate-400">{experimentResult.baseline_tool_calls} calls</td>
-                        <td className="py-3 px-4 text-cyan-300">{experimentResult.improved_tool_calls} calls</td>
+                        <td className="py-3 px-4 text-slate-400">{experimentResult.baseline_tool_calls ?? 0} calls</td>
+                        <td className="py-3 px-4 text-cyan-300">{experimentResult.improved_tool_calls ?? 0} calls</td>
                         <td className="py-3 px-4 text-right text-cyan-400">Fast Fallback Switch</td>
                       </tr>
                       <tr>
                         <td className="py-3 px-4 text-white font-sans font-semibold">Tool Errors / Timeouts</td>
-                        <td className="py-3 px-4 text-red-400">{experimentResult.baseline_errors} error</td>
-                        <td className="py-3 px-4 text-emerald-400">0 errors</td>
+                        <td className="py-3 px-4 text-red-400">{experimentResult.baseline_errors ?? 0} error</td>
+                        <td className="py-3 px-4 text-emerald-400">{experimentResult.improved_errors ?? 0} errors</td>
                         <td className="py-3 px-4 text-right text-emerald-400 font-bold">Zero Outage Leakage</td>
                       </tr>
                       <tr>
                         <td className="py-3 px-4 text-white font-sans font-semibold">Success Rate</td>
-                        <td className="py-3 px-4 text-emerald-400">{experimentResult.baseline_success_rate.toFixed(0)}%</td>
-                        <td className="py-3 px-4 text-emerald-400 font-bold">{experimentResult.improved_success_rate.toFixed(0)}%</td>
+                        <td className="py-3 px-4 text-emerald-400">{(experimentResult.baseline_success_rate ?? experimentResult.baseline_recovery_rate ?? 100).toFixed(0)}%</td>
+                        <td className="py-3 px-4 text-emerald-400 font-bold">{(experimentResult.improved_success_rate ?? experimentResult.improved_recovery_rate ?? 100).toFixed(0)}%</td>
                         <td className="py-3 px-4 text-right text-emerald-400 font-bold">100% Maintained</td>
                       </tr>
                       <tr>

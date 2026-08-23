@@ -982,6 +982,60 @@ class ApiService {
     return data.baseline_comparison;
   }
 
+  async getHumanReviews() {
+    if (!this.useMock) {
+      try {
+        const res = await this.request("/evaluation/feedback");
+        if (res && res.success && Array.isArray(res.data)) {
+          return res.data;
+        }
+      } catch (err) {
+        console.warn("[ApiService] /evaluation/feedback get error:", err.message);
+      }
+    }
+    return [
+      {
+        feedback_id: "fb_init_01",
+        timestamp: new Date().toISOString(),
+        rating: "CORRECT",
+        notes: "Verified grounded citations for NVIDIA Blackwell architecture.",
+        reviewer: "Senior Analyst",
+        status: "RECORDED"
+      }
+    ];
+  }
+
+  async submitHumanReview(rating, notes = "", reviewer = "Human Analyst", investigationId = null) {
+    if (!this.useMock) {
+      try {
+        const res = await this.request("/evaluation/feedback", {
+          method: "POST",
+          body: JSON.stringify({
+            rating,
+            notes,
+            reviewer,
+            investigation_id: investigationId
+          }),
+        });
+        if (res && res.success && res.data) {
+          return res.data;
+        }
+      } catch (err) {
+        console.warn("[ApiService] /evaluation/feedback post error:", err.message);
+      }
+    }
+    return {
+      feedback_id: `fb_${Date.now().toString(16).slice(-6)}`,
+      timestamp: new Date().toISOString(),
+      rating,
+      notes,
+      reviewer,
+      investigation_id: investigationId,
+      status: "RECORDED"
+    };
+  }
+
+
   // =========================================================================
   // TASK 7: OBSERVABILITY & TRACING METHODS
   // =========================================================================

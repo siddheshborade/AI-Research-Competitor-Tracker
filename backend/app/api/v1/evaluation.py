@@ -13,6 +13,13 @@ class BenchmarkRunRequest(BaseModel):
     scenario_filter: Optional[str] = Field(default=None, description="Optional scenario name filter")
 
 
+class HumanReviewRequest(BaseModel):
+    rating: str = Field(..., description="CORRECT | NEEDS_REVIEW | INCORRECT")
+    notes: Optional[str] = Field(default=None, description="Optional human reviewer notes")
+    reviewer: Optional[str] = Field(default="Human Analyst", description="Name of reviewer")
+    investigation_id: Optional[str] = Field(default=None, description="Associated investigation ID")
+
+
 @router.get("/results", response_model=StandardResponse[EvaluationSuiteResult], summary="Get Agent Evaluation Results")
 def get_evaluation_results() -> StandardResponse[EvaluationSuiteResult]:
     """Retrieves the latest 14-category evaluation benchmark scores and scenario audit matrix."""
@@ -43,4 +50,31 @@ def get_baseline_comparison() -> StandardResponse[List[BaselineComparison]]:
         success=True,
         data=results.baseline_comparison,
         message="Baseline comparative benchmarks retrieved successfully."
+    )
+
+
+@router.get("/feedback", response_model=StandardResponse[List[Dict[str, Any]]], summary="Get Human Evaluation Reviews")
+def get_human_evaluation_reviews() -> StandardResponse[List[Dict[str, Any]]]:
+    """Retrieves recorded human evaluation reviews."""
+    reviews = evaluation_engine.get_human_reviews()
+    return StandardResponse(
+        success=True,
+        data=reviews,
+        message="Human evaluation reviews retrieved successfully."
+    )
+
+
+@router.post("/feedback", response_model=StandardResponse[Dict[str, Any]], summary="Submit Human Evaluation Review")
+def submit_human_evaluation_review(request: HumanReviewRequest) -> StandardResponse[Dict[str, Any]]:
+    """Submits human evaluation review (CORRECT / NEEDS_REVIEW) for intelligence outputs."""
+    record = evaluation_engine.add_human_review(
+        rating=request.rating,
+        notes=request.notes,
+        reviewer=request.reviewer,
+        investigation_id=request.investigation_id
+    )
+    return StandardResponse(
+        success=True,
+        data=record,
+        message="Human evaluation review recorded successfully."
     )

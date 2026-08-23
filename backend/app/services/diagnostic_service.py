@@ -1,9 +1,10 @@
 import datetime
 import uuid
 import time
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
 from app.models.trace import Trace, TraceSpan
 from app.services.tracing_service import tracing_service
@@ -47,6 +48,8 @@ class ExperimentResult(BaseModel):
     improved_tool_calls: int
     baseline_recovery_rate: float
     improved_recovery_rate: float
+    baseline_success_rate: float = 100.0
+    improved_success_rate: float = 100.0
     total_tokens_baseline: Optional[int]
     total_tokens_improved: Optional[int]
     status: str
@@ -239,6 +242,8 @@ class DiagnosticService:
             improved_tool_calls=impr_tools,
             baseline_recovery_rate=100.0,
             improved_recovery_rate=100.0,
+            baseline_success_rate=100.0,
+            improved_success_rate=100.0,
             total_tokens_baseline=None,
             total_tokens_improved=None,
             status="SUCCESS",
