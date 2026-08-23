@@ -1,4 +1,5 @@
-from typing import List, Union
+import os
+from typing import List, Union, Optional
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -35,6 +36,15 @@ class Settings(BaseSettings):
     MAX_AGENT_STEPS: int = 6
     MAX_TOOL_CALLS_PER_RUN: int = 6
     EXTERNAL_API_TIMEOUT_SECONDS: float = 10.0
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_database_url(cls, v: Optional[str]) -> str:
+        if not v or v == "sqlite:///./agentx.db":
+            if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+                return "sqlite:////tmp/agentx.db"
+            return "sqlite:///./agentx.db"
+        return v
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
