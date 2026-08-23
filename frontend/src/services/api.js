@@ -1036,6 +1036,28 @@ class ApiService {
     }
     return null;
   }
+
+  async runAgentInvestigation(message, domain = "General", targetCompetitors = [], maxSteps = 4, chaosMode = false) {
+    try {
+      const res = await this.request("/agent/run", {
+        method: "POST",
+        body: JSON.stringify({
+          message,
+          domain,
+          target_competitors: targetCompetitors,
+          max_steps: maxSteps,
+          chaos_mode: Boolean(chaosMode),
+        }),
+      });
+      if (res && res.success && res.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn("[ApiService] /agent/run error:", err.message);
+      throw err;
+    }
+    return null;
+  }
 }
 
 export const api = new ApiService();

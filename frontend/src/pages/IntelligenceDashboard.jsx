@@ -39,15 +39,19 @@ export function IntelligenceDashboard() {
 
   const [dashboardData, setDashboardData] = useState(null);
   const [memoryHistory, setMemoryHistory] = useState(null);
+  const [traceMetrics, setTraceMetrics] = useState(null);
+  const [latestTrace, setLatestTrace] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
     async function fetchDashboard() {
       try {
-        const [dash, mem] = await Promise.allSettled([
+        const [dash, mem, trSummary, trList] = await Promise.allSettled([
           api.getDashboard(),
           api.getMemoryHistory(),
+          api.getTraceSummaryMetrics(),
+          api.getTraces(1),
         ]);
         if (isMounted) {
           if (dash.status === "fulfilled" && dash.value) {
@@ -55,6 +59,12 @@ export function IntelligenceDashboard() {
           }
           if (mem.status === "fulfilled" && mem.value) {
             setMemoryHistory(mem.value);
+          }
+          if (trSummary.status === "fulfilled" && trSummary.value) {
+            setTraceMetrics(trSummary.value);
+          }
+          if (trList.status === "fulfilled" && Array.isArray(trList.value) && trList.value.length > 0) {
+            setLatestTrace(trList.value[0]);
           }
         }
       } catch (err) {
@@ -448,6 +458,110 @@ export function IntelligenceDashboard() {
         ) : (
           <div className="p-6 text-center text-xs text-slate-400 bg-[#07080D] rounded-xl border border-[#1A1F2C]">
             No investigations yet. Start your first research investigation.
+          </div>
+        )}
+      </div>
+
+      {/* 6. Observability & Telemetry Summary */}
+      <div className="bg-[#0D0F16] rounded-2xl p-6 border border-[#1A1F2C] space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1A1F2C]">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#A855F7]" />
+            <h2 className="text-sm font-bold text-slate-100">
+              Observability & Telemetry
+            </h2>
+          </div>
+          <button
+            onClick={() => setActiveView("observability")}
+            className="text-xs font-mono text-[#A855F7] hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <span>Traces & Diagnostics</span>
+            <ChevronRight className="w-3 h-3" />
+          </button>
+        </div>
+
+        {latestTrace ? (
+          <div className="space-y-4">
+            {/* 4 Compact Real Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 bg-[#07080D] rounded-xl border border-[#1A1F2C]">
+                <div className="text-[10px] font-mono uppercase text-slate-500">Execution Time</div>
+                <div className="text-base font-bold text-white font-mono pt-1">
+                  {latestTrace.duration_ms ? `${(latestTrace.duration_ms / 1000).toFixed(2)}s` : `${((traceMetrics?.average_duration_ms || 0) / 1000).toFixed(2)}s`}
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#07080D] rounded-xl border border-[#1A1F2C]">
+                <div className="text-[10px] font-mono uppercase text-slate-500">Tool Calls</div>
+                <div className="text-base font-bold text-cyan-300 font-mono pt-1">
+                  {latestTrace.total_tool_calls ?? (traceMetrics?.total_tool_calls || 0)}
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#07080D] rounded-xl border border-[#1A1F2C]">
+                <div className="text-[10px] font-mono uppercase text-slate-500">Errors</div>
+                <div className="text-base font-bold text-amber-400 font-mono pt-1">
+                  {latestTrace.error_count ?? (traceMetrics?.total_errors || 0)}
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#07080D] rounded-xl border border-[#1A1F2C]">
+                <div className="text-[10px] font-mono uppercase text-slate-500">Success Rate</div>
+                <div className="text-base font-bold text-emerald-400 font-mono pt-1">
+                  {traceMetrics?.success_rate ? `${traceMetrics.success_rate.toFixed(1)}%` : "100.0%"}
+                </div>
+              </div>
+            </div>
+
+            {/* Latest Investigation Card */}
+            <div className="p-4 rounded-xl bg-[#07080D] border border-[#1A1F2C] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
+                  <span className="text-purple-300 font-bold">Latest Investigation:</span>
+                  <span className="text-slate-400">Trace {latestTrace.trace_id}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      latestTrace.status === "SUCCESS"
+                        ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
+                        : latestTrace.status === "RECOVERED"
+                        ? "bg-amber-950/80 text-amber-300 border border-amber-500/30"
+                        : "bg-red-950/80 text-red-300 border border-red-500/30"
+                    }`}
+                  >
+                    {latestTrace.status}
+                  </span>
+                </div>
+                <h3 className="text-xs font-bold text-slate-200 line-clamp-1">
+                  {latestTrace.name}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <button
+                  onClick={() => setActiveView("observability")}
+                  className="px-3 py-1.5 rounded-lg bg-[#161B26] hover:bg-[#7C2CFF]/20 text-[#A855F7] border border-[#232938] hover:border-[#7C2CFF]/40 text-xs font-semibold transition-all cursor-pointer"
+                >
+                  View Trace
+                </button>
+                <button
+                  onClick={() => setActiveView("observability")}
+                  className="px-3 py-1.5 rounded-lg bg-[#161B26] hover:bg-[#00D9FF]/20 text-[#00D9FF] border border-[#232938] hover:border-[#00D9FF]/40 text-xs font-semibold transition-all cursor-pointer"
+                >
+                  View Diagnostics
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-6 text-center text-xs text-slate-400 bg-[#07080D] rounded-xl border border-[#1A1F2C] space-y-2">
+            <div>No investigation traces yet.</div>
+            <p className="text-[11px] text-slate-500">Run an investigation to generate your first observability trace.</p>
+            <button
+              onClick={() => setActiveView("landing")}
+              className="mt-2 px-3 py-1.5 rounded-lg bg-[#7C2CFF]/20 hover:bg-[#7C2CFF]/30 text-purple-200 border border-[#7C2CFF]/40 text-xs font-medium transition-colors cursor-pointer"
+            >
+              + Start Investigation
+            </button>
           </div>
         )}
       </div>
